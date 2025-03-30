@@ -12,7 +12,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # 复制项目文件（放在安装依赖之后）
 COPY app/ ./app/
-COPY .env .env
 
 # 启动命令
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -39,18 +39,27 @@ Each run automatically retrieves the past 180 days of Orkney’s renewable power
 <div style="display: flex; justify-content: center; align-items: center; flex-direction: column;">
 
 windspeed and windpower visualizaion
-<img src="draw/wind_speed_and_power_generation_2023.png" alt="Description" width="400">  
+
+<img src="draw/wind_speed_and_power_generation_2023.png" alt="Description" width="400"> 
+
 
 wind direction and windpower visualizaion
+
 <img src="draw/wind_direction and power generation in 2023.png" alt="Description" width="400">    
 
+
 metrics
+
 <img src="draw/metrics.png" alt="Description" width="400">  
 
+
 model trained
+
 <img src="draw/model_predictions-180d&5f.png" alt="Description" width="400">  
 
+
 prediction with the best model
+
 <img src="draw/wind_power_prediction_30days.png" alt="Description" width="400">    
 </div>
 
