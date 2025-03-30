@@ -3,15 +3,24 @@ services:
   mlflow:
     build: ./mlflow-server
     ports:
-      - "5001:5000"
+      - "5001:5000"  
     volumes:
-      - ./mlflow-server/mlruns:/mlruns
+      - ./mlflow-server/mlruns:/mlruns  # 保存模型仓库
+    environment:
+      - MLFLOW_TRACKING_URI=http://0.0.0.0:5000
 
   fastapi:
     build: ./fastapi-app
     ports:
       - "8000:8000"
-    volumes:
-      - ./mlflow-server/mlruns:/app/mlruns
     depends_on:
       - mlflow
+    environment:
+      # 如果用的是 compose，容器之间通信可用 service 名
+      - USE_LOCAL_MLFLOW=false
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+      - MODEL_NAME=RandomForest
+      - MODEL_STAGE=Production
+    volumes:
+      # 如果 FastAPI 使用本地模型，才挂载
+      - ./mlflow-server/mlruns:/app/mlruns
