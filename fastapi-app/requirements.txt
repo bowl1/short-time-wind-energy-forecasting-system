@@ -1,0 +1,13 @@
+mlflow
+influxdb
+jupyter
+statsmodels
+xgboost
+fastapi
+uvicorn
+numpy
+pandas
+matplotlib
+scikit-learn
+seaborn
+python-dotenv

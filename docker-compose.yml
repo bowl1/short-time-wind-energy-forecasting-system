@@ -1,0 +1,17 @@
+version: '3'
+services:
+  mlflow:
+    build: ./mlflow-server
+    ports:
+      - "5001:5000"
+    volumes:
+      - ./mlflow-server/mlruns:/mlruns
+
+  fastapi:
+    build: ./fastapi-app
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./mlflow-server/mlruns:/app/mlruns
+    depends_on:
+      - mlflow
