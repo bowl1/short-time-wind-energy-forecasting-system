@@ -10,6 +10,7 @@ from mlflow.models import Model
 from mlflow.tracking import MlflowClient
 from dotenv import load_dotenv
 from fastapi.responses import RedirectResponse
+import time
 
 # === Load .env ===
 load_dotenv()
@@ -33,6 +34,7 @@ if use_local:
     model_uri = f"file:/app/{local_path}"
     model = mlflow.pyfunc.load_model(model_uri)
 else:
+    time.sleep(20)  # 等待 MLflow Server 启动完成（根据需要调整秒数）
     mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI"))
     model_name = os.getenv("MODEL_NAME")
     model_stage = os.getenv("MODEL_STAGE")
