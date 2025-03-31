@@ -13,8 +13,7 @@ from fastapi.responses import RedirectResponse
 import time
 
 # === Load .env ===
-if os.getenv("ENV") != "docker":
-    load_dotenv()
+# load_dotenv()
 
 app = FastAPI(
     title="Wind Power Forecast API",
