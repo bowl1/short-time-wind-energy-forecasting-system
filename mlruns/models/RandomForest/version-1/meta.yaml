@@ -1,0 +1,14 @@
+aliases: []
+creation_timestamp: 1743420834412
+current_stage: None
+description: null
+last_updated_timestamp: 1743420834412
+name: RandomForest
+run_id: 2320fcaa0a624a6dada961e37aced15d
+run_link: null
+source: file:///Users/libowen/github/windpower_prediction_Orkney/mlruns/0/2320fcaa0a624a6dada961e37aced15d/artifacts/model
+status: READY
+status_message: null
+storage_location: file:///Users/libowen/github/windpower_prediction_Orkney/mlruns/0/2320fcaa0a624a6dada961e37aced15d/artifacts/model
+user_id: null
+version: 1

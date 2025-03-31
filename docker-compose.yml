@@ -17,6 +17,7 @@ services:
       - mlflow
     environment:
       # 如果用的是 compose，容器之间通信可用 service 名
+      - ENV=docker
       - USE_LOCAL_MLFLOW=false
       - MLFLOW_TRACKING_URI=http://mlflow:5000
       - MODEL_NAME=RandomForest

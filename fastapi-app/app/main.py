@@ -13,7 +13,8 @@ from fastapi.responses import RedirectResponse
 import time
 
 # === Load .env ===
-load_dotenv()
+if os.getenv("ENV") != "docker":
+    load_dotenv()
 
 app = FastAPI(
     title="Wind Power Forecast API",
@@ -34,7 +35,7 @@ if use_local:
     model_uri = f"file:/app/{local_path}"
     model = mlflow.pyfunc.load_model(model_uri)
 else:
-    time.sleep(20)  # 等待 MLflow Server 启动完成（根据需要调整秒数）
+    time.sleep(10)  # 等待 MLflow Server 启动完成（根据需要调整秒数）
     mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI"))
     model_name = os.getenv("MODEL_NAME")
     model_stage = os.getenv("MODEL_STAGE")

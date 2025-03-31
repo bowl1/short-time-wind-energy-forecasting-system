@@ -1,0 +1,15 @@
+artifact_uri: file:///Users/libowen/github/windpower_prediction_Orkney/mlruns/0/2320fcaa0a624a6dada961e37aced15d/artifacts
+end_time: 1743420834416
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 2320fcaa0a624a6dada961e37aced15d
+run_name: fun-crab-422
+run_uuid: 2320fcaa0a624a6dada961e37aced15d
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1743420832152
+status: 3
+tags: []
+user_id: libowen
