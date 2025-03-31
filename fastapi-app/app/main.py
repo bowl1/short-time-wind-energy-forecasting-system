@@ -22,7 +22,7 @@ app = FastAPI(
 )
 
 # === Model Setup ===
-use_local = os.getenv("USE_LOCAL_MLFLOW") == "true"
+use_local = os.getenv("USE_LOCAL_MLFLOW", "true").lower() == "true"
 model = None
 model_uri = ""
 model_name = ""
