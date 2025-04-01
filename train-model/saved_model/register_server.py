@@ -1,7 +1,7 @@
 import mlflow
 from mlflow.tracking import MlflowClient
 
-mlflow.set_tracking_uri("http://127.0.0.1:5001")  # or http://mlflow:5000 inside Docker
+mlflow.set_tracking_uri("http://20.234.40.109:5001") 
 client = MlflowClient()
 
 run_id = "63cb92ead13b427ab68bde2d5cc13899"
