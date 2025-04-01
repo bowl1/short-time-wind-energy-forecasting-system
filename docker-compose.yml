@@ -6,8 +6,10 @@ services:
       - "5001:5000"  
     volumes:
       - ./mlflow-server/mlruns:/mlruns  # 保存模型仓库
+      - ./mlflow-server/mlflow.db:/mlflow/mlflow.db
     command: >
       mlflow server
+      --backend-store-uri sqlite:///mlflow.db
       --default-artifact-root /mlruns
       --host 0.0.0.0
       --port 5000
