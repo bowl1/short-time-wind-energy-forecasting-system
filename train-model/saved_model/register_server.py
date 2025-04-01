@@ -5,7 +5,7 @@ mlflow.set_tracking_uri("http://20.234.40.109:5001")
 client = MlflowClient()
 
 experiment_id = "925431245205846442"
-run_id = "a7e549dcaa24498399e3acb332cc42ca"
+run_id = "63cb92ead13b427ab68bde2d5cc13899"
 model_name = "RandomForest_azure"
 model_artifact_path = "traditional_model"
 
