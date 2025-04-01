@@ -9,3 +9,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 # 开放端口
 EXPOSE 5000
 
+CMD ["mlflow", "server"]
