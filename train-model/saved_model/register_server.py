@@ -6,7 +6,7 @@ client = MlflowClient()
 
 experiment_id = "925431245205846442"
 run_id = "63cb92ead13b427ab68bde2d5cc13899"
-model_name = "RandomForest_azure"
+model_name = "RandomForest"
 model_artifact_path = "traditional_model"
 
 # 如果还没注册过模型名
