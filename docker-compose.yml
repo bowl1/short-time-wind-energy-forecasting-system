@@ -8,8 +8,7 @@ services:
       - ./mlflow-server/mlruns:/mlruns  # 保存模型仓库
     command: >
       mlflow server
-      --backend-store-uri /mlruns
-      --default-artifact-root /mlruns
+      --default-artifact-root /mlflow/mlruns
       --host 0.0.0.0
       --port 5000
       --workers 1
