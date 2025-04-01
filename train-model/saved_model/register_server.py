@@ -7,18 +7,16 @@ client = MlflowClient()
 experiment_id = "925431245205846442"
 run_id = "63cb92ead13b427ab68bde2d5cc13899"
 model_name = "RandomForest"
-model_artifact_path = "traditional_model"
 
-# 如果还没注册过模型名
+# 如果模型还没注册过
 try:
     client.create_registered_model(model_name)
 except:
     pass
 
-# 重新注册为新版本（关键是下面这一行必须是绝对路径）
 client.create_model_version(
     name=model_name,
-    source=model_artifact_path,
+    source=f"../../mlruns/{experiment_id}/{run_id}/artifacts/traditional_model",
     run_id=run_id,
-    description="Re-registered from original run, with metrics & original artifact"
+    description="Re-registered from existing run with metrics"
 )
