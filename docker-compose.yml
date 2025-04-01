@@ -5,9 +5,10 @@ services:
     ports:
       - "5001:5000"  
     volumes:
-      - ./mlflow-server/mlruns:/mlruns  # 保存模型仓库
+      - ./mlruns:/mlflow/mlruns 
     command: >
       mlflow server
+      --backend-store-uri /mlflow/mlruns
       --default-artifact-root /mlflow/mlruns
       --host 0.0.0.0
       --port 5000
@@ -26,4 +27,4 @@ services:
 
     volumes:
       # 如果 FastAPI 使用本地模型，才挂载
-      - ./mlflow-server/mlruns:/app/mlruns
+       - ./mlruns:/app/mlruns 
