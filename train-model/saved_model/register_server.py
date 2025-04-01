@@ -17,7 +17,7 @@ except:
 # 创建模型版本，引用原始 run 的 artifact
 client.create_model_version(
     name="RandomForest",
-    source=f"/home/bowen/short-time-wind-energy-forecasting-system/train-model/saved_model/mlruns/925431245205846442/a7e549dcaa24498399e3acb332cc42ca/artifacts/traditional_model",
+    source=f"mlruns/925431245205846442/a7e549dcaa24498399e3acb332cc42ca/artifacts/traditional_model",
     run_id=run_id,
     description="Re-registered from original training run  with metrics"
 )
