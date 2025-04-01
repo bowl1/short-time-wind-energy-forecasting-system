@@ -18,7 +18,7 @@ except:
 # 重新注册为新版本（关键是下面这一行必须是绝对路径）
 client.create_model_version(
     name=model_name,
-    source=f"mlruns/{experiment_id}/{run_id}/artifacts/{model_artifact_path}",
+    source=model_artifact_path,
     run_id=run_id,
     description="Re-registered from original run, with metrics & original artifact"
 )
