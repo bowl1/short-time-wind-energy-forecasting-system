@@ -26,7 +26,6 @@ use_local = os.getenv("USE_LOCAL_MLFLOW", "true").lower() == "true"
 model = None
 model_uri = ""
 model_name = ""
-model_stage = ""
 client = None
 
 if use_local:
@@ -38,7 +37,7 @@ else:
     mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI"))
     model_name = os.getenv("MODEL_NAME")
     model_stage = os.getenv("MODEL_STAGE")
-    model_uri = f"models:/{model_name}/{model_stage}"
+    model_uri = f"models:/RandomForest/Production"
     client = MlflowClient()
     model = mlflow.pyfunc.load_model(model_uri)
 
