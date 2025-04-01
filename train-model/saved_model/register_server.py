@@ -1,25 +1,16 @@
+import joblib
 import mlflow
-from mlflow.tracking import MlflowClient
+import mlflow.sklearn
 
-mlflow.set_tracking_uri("http://mlflow:5000")  # ← docker 容器内必须用服务名通信
-client = MlflowClient()
+mlflow.set_tracking_uri("http://mlflow:5000")
+mlflow.set_experiment("WindPower")
 
-experiment_id = "925431245205846442"
-run_id = "63cb92ead13b427ab68bde2d5cc13899"
-model_name = "RandomForest"
-artifact_path = "traditional_model"
+model = joblib.load("/mlflow/mlruns/925431245205846442/63cb92ead13b427ab68bde2d5cc13899/artifacts/traditional_model/model.pkl")
 
-source = f"mlruns/{experiment_id}/{run_id}/artifacts/{artifact_path}"
-
-# 注册一次
-try:
-    client.create_registered_model(model_name)
-except:
-    pass
-
-client.create_model_version(
-    name=model_name,
-    source=source,
-    run_id=run_id,
-    description="Registering model from existing run"
-)
+with mlflow.start_run() as run:
+    mlflow.sklearn.log_model(
+        model,
+        artifact_path="model",
+        registered_model_name="RandomForest"
+    )
+    print("✅ Registered with new run_id:", run.info.run_id)
