@@ -1,45 +1,26 @@
 from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 from datetime import datetime, timedelta
 import pandas as pd
 import math
+import joblib
 import os
-import mlflow
-import mlflow.pyfunc
-from mlflow.models import Model
-from mlflow.tracking import MlflowClient
-from dotenv import load_dotenv
-from fastapi.responses import RedirectResponse
-import time
-
-# === Load .env ===
-# load_dotenv()
 
 app = FastAPI(
     title="Wind Power Forecast API",
-    description="A REST API for predicting wind power using an MLflow-trained model. Includes prediction besed on input, next 24 hours prediction, metrics, and model info.",
+    description="API for predicting wind power using a locally saved RandomForest model.",
     version="1.0.0",
 )
 
-# === Model Setup ===
-use_local = os.getenv("USE_LOCAL_MLFLOW", "true").lower() == "true"
-model = None
-model_uri = ""
-model_name = ""
-client = None
+# === Load Local Model ===
+local_model_path = os.getenv("LOCAL_MODEL_PATH", "train-model/saved_model/RandomForest.pkl")
 
-if use_local:
-    local_path = os.getenv("LOCAL_MODEL_PATH")
-    model_uri = f"file:/app/{local_path}"
-    model = mlflow.pyfunc.load_model(model_uri)
-else:
-    time.sleep(10)  # 等待 MLflow Server 启动完成（根据需要调整秒数）
-    mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI"))
-    model_name = os.getenv("MODEL_NAME")
-    model_stage = os.getenv("MODEL_STAGE")
-    model_uri = f"models:/RandomForest/Production"
-    client = MlflowClient()
-    model = mlflow.pyfunc.load_model(model_uri)
+try:
+    model = joblib.load(local_model_path)
+except Exception as e:
+    print(f"Failed to load model from {local_model_path}: {e}")
+    model = None
 
 
 # === Request Schema ===
@@ -49,7 +30,7 @@ class InputData(BaseModel):
     timestamp: str  # e.g., "2025-03-30T12:00:00"
 
 
-# === Predict ===
+# === Predict One ===
 @app.post("/predict")
 def predict_power(data: InputData):
     try:
@@ -70,7 +51,7 @@ def predict_power(data: InputData):
         return {"error": str(e)}
 
 
-# === Predict 24h Endpoint ===
+# === Predict 24 Hours ===
 @app.get("/predict/next-24h")
 def predict_next_24h():
     try:
@@ -80,7 +61,7 @@ def predict_next_24h():
             future_time = now + timedelta(hours=i)
             inputs.append(
                 {
-                    "Speed": 10.0,
+                    "Speed": 10.0,  # 默认风速
                     "Direction_sin": 0.5,
                     "Direction_cos": 0.87,
                     "month": future_time.month,
@@ -99,54 +80,6 @@ def predict_next_24h():
         return {"error": str(e)}
 
 
-# === Health Check ===
-@app.get("/health")
-def health_check():
-    return {"status": "ok"}
-
-
-# === Model Info ===
-@app.get("/info")
-def model_info():
-    try:
-        if use_local:
-            mlmodel = Model.load(os.path.join(local_path, "MLmodel"))
-            return {
-                "source": "local",
-                "path": local_path,
-                "flavors": list(mlmodel.flavors.keys()),
-            }
-        else:
-            latest_version = client.get_latest_versions(
-                model_name, stages=[model_stage]
-            )[0]
-            registry_path = mlflow.pyfunc.get_model_path(model_uri)
-            mlmodel = Model.load(os.path.join(registry_path, "MLmodel"))
-            return {
-                "source": "mlflow registry",
-                "model_name": model_name,
-                "stage": model_stage,
-                "version": latest_version.version,
-                "run_id": latest_version.run_id,
-                "flavors": list(mlmodel.flavors.keys()),
-                "path": registry_path,
-            }
-    except Exception as e:
-        return {"error": str(e)}
-
-
-# === Model Metrics ===
-@app.get("/metrics")
-def model_metrics():
-    if use_local:
-        return {"message": "Metrics not available for local model."}
-    else:
-        latest_version = client.get_latest_versions(model_name, stages=[model_stage])[0]
-        run_id = latest_version.run_id
-        metrics = client.get_run(run_id).data.metrics
-        return metrics
-
-
 # === Sample Input ===
 @app.get("/sample-input")
 def sample_input():
@@ -157,7 +90,13 @@ def sample_input():
     }
 
 
-# === Swagger redirect ===
+# === Health Check ===
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
+
+
+# === Redirect root to Swagger UI ===
 @app.get("/", include_in_schema=False)
 def root():
     return RedirectResponse(url="/docs")
