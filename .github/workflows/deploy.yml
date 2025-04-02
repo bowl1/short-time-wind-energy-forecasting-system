@@ -23,7 +23,7 @@ jobs:
           ssh -o StrictHostKeyChecking=no ${{ secrets.VM_USER }}@${{ secrets.VM_HOST }} << 'EOF'
             cd /home/bowen/short-time-wind-energy-forecasting-system
             git pull origin master
-            docker build -t wind-api .
+            docker build -t wind-api ./fastapi-app
             docker stop wind-api || true
             docker rm wind-api || true
             docker run -d --name wind-api -p 8000:8000 wind-api
