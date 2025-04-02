@@ -9,7 +9,7 @@ import os
 
 app = FastAPI(
     title="Wind Power Forecast API",
-    description="API for predicting wind power using a locally saved RandomForest model.",
+    description="This API provides short-term wind power predictions based on input features such as wind speed, wind direction, and timestamp. It uses a pre-trained **machine learning model to estimate wind energy output and supports both single-point and 24 hours predictions.",
     version="1.0.0",
 )
 

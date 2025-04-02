@@ -1,6 +1,30 @@
+This project is a RESTful API for predicting wind power using a trained RandomForest model. Built with FastAPI, it is deployed on an Azure Virtual Machine and provides an interactive Swagger UI for easy testing.
+
 The Orkney Islands, located in Northern Scotland, have significant wind and marine energy resources. Local farms can utilize wind power for energy generation. This app aims to use weather forecasting data to predict energy production for Orkney.
 
-- How to run: 
+You can access the live API via:
+http://20.234.40.109:8000/docs#/
+
+&nbsp;&nbsp;&nbsp;&nbsp;<img src="draw/api.png" alt="Description" width="600">
+
+- Available Endpoints
+	- POST /predict: <br/>
+Predict wind power based on user-provided meteorological input.
+	- GET /predict/next-24h:<br/>
+Predict wind power output for the next 24 hours.
+	- GET /sample-input: <br/>
+Returns a sample input format for testing.
+	- GET /health: <br/>
+Health check endpoint to verify API status.
+
+- Tech Stack
+	- Backend: FastAPI, Python
+	- ML Models: XGBoost, Linear regression, Random Forest(best performance and selected for deployment)
+	- Deployment: Azure Virtual Machine (Ubuntu), Docker
+	- Documentation: Swagger (via FastAPI’s auto-generated docs)
+	- Others: MLflow, Pandas, Scikit-learn
+
+- How to run the code and train models by yourself: 
   - The program includes two main functionalities: model generation and prediction using the model.
   - First run: "conda env create -f conda_env.yaml" to build the enviromant after download the code.<br/>
   Then run "conda activate windpower_prediction_Orkney" to activate the environment.
