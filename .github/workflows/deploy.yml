@@ -48,5 +48,5 @@ jobs:
             sudo docker build -f fastapi-app/Dockerfile -t wind-api .
             sudo docker stop wind-api || true
             sudo docker rm wind-api || true
-            sudo docker run -d --restart unless-stopped --name wind-api -p 8000:8000 wind-api
+            sudo docker run -d --restart unless-stopped --name wind-api -p 80:8000 wind-api
           EOF

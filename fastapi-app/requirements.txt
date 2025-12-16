@@ -8,6 +8,6 @@ uvicorn
 numpy
 pandas
 matplotlib
-scikit-learn
+scikit-learn == 1.5.1
 seaborn
 python-dotenv
