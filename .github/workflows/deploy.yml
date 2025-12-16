@@ -1,4 +1,4 @@
-name: Deploy to Azure VM
+name: Deploy to EC2
 
 on:
   push:
@@ -11,20 +11,42 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup SSH
-        uses: webfactory/ssh-agent@v0.7.0
+        uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Deploy to Azure VM
+      - name: Deploy to EC2
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.VM_USER }}@${{ secrets.VM_HOST }} << 'EOF'
-            cd /home/bowen/short-time-wind-energy-forecasting-system
-            git pull origin master
-            docker build -f fastapi-app/Dockerfile -t wind-api .
-            docker stop wind-api || true
-            docker rm wind-api || true
-            docker run -d --name wind-api -p 8000:8000 wind-api
+            set -e
+
+            APP_DIR="/home/ubuntu/short-time-wind-energy-forecasting-system"
+            REPO_URL="https://github.com/bowl1/short-time-wind-energy-forecasting-system.git"
+
+            # 0) Ensure dependencies
+            sudo apt-get update -y
+            sudo apt-get install -y git docker.io
+
+            # Ensure Docker is running
+            sudo systemctl enable --now docker
+
+            # 1) First-time clone (public repo)
+            if [ ! -d "$APP_DIR/.git" ]; then
+              rm -rf "$APP_DIR"
+              git clone "$REPO_URL" "$APP_DIR"
+            fi
+
+            # 2) Pull latest
+            cd "$APP_DIR"
+            git fetch --all
+            git reset --hard origin/master
+
+            # 3) Build & run
+            sudo docker build -f fastapi-app/Dockerfile -t wind-api .
+            sudo docker stop wind-api || true
+            sudo docker rm wind-api || true
+            sudo docker run -d --restart unless-stopped --name wind-api -p 8000:8000 wind-api
           EOF
