@@ -1,6 +1,6 @@
 # Wind Power Forecasting API for Orkney
 
-This project is a RESTful API for predicting wind power using a trained **Random Forest** model. Built with **FastAPI**, it is deployed on an **Azure Virtual Machine**, and provides an interactive **Swagger UI** for easy testing.
+This project is a RESTful API for predicting wind power using a trained **Random Forest** model. Built with **FastAPI**, it is deployed on an **AWS EC2**, and provides an interactive **Swagger UI** for easy testing.
 
 The **Orkney Islands**, located in Northern Scotland, have significant wind and marine energy resources. Local farms can utilize wind power for energy generation. This app aims to use weather forecasting data to predict energy production for Orkney.
 
@@ -9,7 +9,7 @@ The **Orkney Islands**, located in Northern Scotland, have significant wind and 
 
 You can access the live API via:
 
-👉 [http://20.234.40.109:8000/docs#/](http://20.234.40.109:8000/docs#/)
+👉 http://13.60.68.102/docs
 
 <img src="draw/api.png" alt="Swagger UI Screenshot" width="600">
 
@@ -32,7 +32,7 @@ You can access the live API via:
 
 - **Backend**: FastAPI (Python)
 - **ML Models**: XGBoost, Linear Regression, Random Forest *(best performance and selected for deployment)*
-- **Deployment**: Azure Virtual Machine (Ubuntu)
+- **Deployment**: AWS EC2(Ubuntu)
 - **Documentation**: Swagger (via FastAPI’s auto-generated docs)
 - **ML Ops Tools**: MLflow, Pandas, Scikit-learn
 - **CI/CD**:
