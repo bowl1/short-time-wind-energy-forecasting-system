@@ -37,7 +37,7 @@ You can access the live API via:
 - **ML Ops Tools**: MLflow, Pandas, Scikit-learn
 - **CI/CD**:
   - Docker for containerization and environment consistency  
-  - GitHub Actions for automatic deployment to Azure VM on each `git push`
+  - GitHub Actions for automatic deployment to AWS EC2 on each `git push`
 
 
 ## 🧪 How to Run the Code and Train Models Locally
