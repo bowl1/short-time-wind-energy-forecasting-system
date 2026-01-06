@@ -20,7 +20,7 @@ client = InfluxDBClient(
 client.switch_database("orkney")
 
 
-# 获取数据并处理为 DataFrame
+# Get the data and process it into DataFrame
 def fetch_data(days=180):
     query = f"""
     SELECT * FROM "MetForecasts"
@@ -58,50 +58,50 @@ def encode_wind_direction(df):
     return df
 
 
-# 获取未来30天的输入数据
+# Get input data for the next 30 days
 def prepare_data_for_prediction():
-    df = fetch_data(180)  # 获取180天数据
+    df = fetch_data(180)  # Get 180 days of data
     df = encode_wind_direction(df)
 
     df["month"] = df["time"].dt.month
     df["day_of_week"] = df["time"].dt.dayofweek
     df["hour"] = df["time"].dt.hour
 
-    # 特征列
+    # feature column
     features = ["Speed", "Direction_sin", "Direction_cos", "month", "day_of_week", "hour"]
     
-    # 数据预处理：标准化数值特征
+    # Data preprocessing: standardized numerical features
     scaler = StandardScaler()
     df[["Speed", "Direction_sin", "Direction_cos"]] = scaler.fit_transform(df[["Speed", "Direction_sin", "Direction_cos"]])
 
-    # 提取特征用于预测
+    # Extract features for prediction
     X_future = df[features]
     
-    # 返回 scaler 和标准化后的特征
+    # Return scaler and normalized features
     return X_future, scaler, df
 
 
-# 加载 MLflow 中的模型
+# Loading a model in MLflow
 def load_mlflow_model(model_uri='runs:/4649533270f44f099f3865458347d2ba/traditional_model'):
-    # 使用 model_uri 加载模型
+    # Use model_uri to load the model
     model = mlflow.pyfunc.load_model(model_uri)
     return model
 
 
-# 进行预测并绘图
+# Make predictions and plot
 def predict_and_plot():
-    # 获取准备好的数据和标准化器
+    # Get prepared data and normalizer
     X_future, scaler, df = prepare_data_for_prediction()
     model = load_mlflow_model()
 
-    # 进行预测
+    # make predictions
     predictions_scaled = model.predict(X_future)
 
-    # 逆标准化：恢复原始尺度
-    predictions_original = predictions_scaled * scaler.scale_[0] + scaler.mean_[0]  # 恢复风速的原始值
-    predictions_original = predictions_original[:30]  # 截取前 30 个预测值
+    # Denormalization: restore original scale
+    predictions_original = predictions_scaled * scaler.scale_[0] + scaler.mean_[0]  # Restore the original value of wind speed
+    predictions_original = predictions_original[:30]  # Cut the first 30 predicted values
 
-    # 生成未来30天的日期
+    # Generate dates 30 days in the future
     future_dates = pd.date_range(start=pd.to_datetime("today"), periods=30, freq="D")
 
     plt.figure(figsize=(10, 6))
@@ -116,5 +116,5 @@ def predict_and_plot():
     plt.show()
 
 
-# 调用预测和绘图的函数
+# Call functions for prediction and plotting
 predict_and_plot()

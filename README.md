@@ -1,8 +1,10 @@
 # Wind Power Forecasting API for Orkney
 
-This project is a RESTful API for predicting wind power using a trained **Random Forest** model. Built with **FastAPI**, it is deployed on an **AWS EC2**, and provides an interactive **Swagger UI** for easy testing.
-
 The **Orkney Islands**, located in Northern Scotland, have significant wind and marine energy resources. Local farms can utilize wind power for energy generation. This app aims to use weather forecasting data to predict energy production for Orkney.
+
+This project is a RESTful API for predicting wind power using a trained **Random Forest** model. Built with **FastAPI**, it is deployed on an **AWS EC2**, and provides an interactive **Swagger UI** for easy testing. 
+
+It follows a classical ML process, MLflow provides experiment tracking and model versioning, separating model training, experiment tracking, and inference serving into clearly defined components.
 
 
 ## 🌐 Live Demo
@@ -17,10 +19,10 @@ You can access the live API via:
 ## 📌 Available Endpoints
 
 - **POST /predict**  
-  Predict wind power based on user-provided meteorological input.
+  Predict wind power for next 1 hour or based on user-provided input.
 
-- **GET /predict/next-24h**  
-  Predict wind power output for the next 24 hours.
+- **POST /predict/next-24h**  
+  Predict wind power output for the next 24 hours or based on user-provided input.
 
 - **GET /sample-input**  
   Returns a sample input format for testing.
@@ -38,36 +40,6 @@ You can access the live API via:
 - **CI/CD**:
   - Docker for containerization and environment consistency  
   - GitHub Actions for automatic deployment to AWS EC2 on each `git push`
-
-
-## 🧪 How to Run the Code and Train Models Locally
-
-This program supports two main functionalities: **model training** and **prediction**.
-
-1. Create the conda environment:
-
-   ```bash
-   conda env create -f conda_env.yaml
-   conda activate windpower_prediction_Orkney
-   ```
-
-2. To train a model:
-
-   ```bash
-   mlflow run . --experiment-name windModel
-   ```
-
-   or
-
-   ```bash
-   python trainModel.py
-   ```
-
-3. To make predictions using the trained model:
-
-   ```bash
-   python predictWindpower.py
-   ```
 
 
 ## 🌍 Data Sources
@@ -95,8 +67,23 @@ The project uses traditional machine learning models from Scikit-learn to train 
 - Day of the week  
 - Hour  
 
+## 📊 Experiment Tracking with MLflow
 
-## 📊 Model Selection & Observation
+The training process is fully tracked using MLflow, enabling reproducibility and comparison across experiments.
+
+MLflow is used to:
+- Track experiment configuration:
+- Data window size
+- Cross-validation splits
+- Feature preprocessing steps
+- Log evaluation metrics for each model
+- Store trained model artifacts
+- Register the best-performing model in the MLflow Model Registry
+
+This allows systematic comparison between different models and parameter settings without manual bookkeeping.
+
+
+## 🏆 Model Selection & Observation
 
 After training multiple models with varying parameters (30–365 day intervals and 3–10 time series splits), **Random Forest** performed best with:
 
@@ -133,6 +120,37 @@ prediction with the best model
 
 <img src="draw/wind_power_prediction_30days.png" alt="Description" width="400">    
 </div>
+
+## 🧪 How to Run the Code and Train Models Locally
+
+This program supports two main functionalities: **model training** and **prediction**.
+
+1. Create the virtual environment:
+
+   ```bash
+    python -m venv .venv
+    source .venv/bin/activate
+    pip install -r fastapi-app/requirements.txt
+   ```
+
+2. To train a model:
+
+   ```bash
+   mlflow run . --experiment-name windModel
+   ```
+
+   or
+
+   ```bash
+   python trainModel.py
+   ```
+
+3. To make predictions using the trained model:
+
+   ```bash
+   python predictWindpower.py
+   ```
+
 
 
 
