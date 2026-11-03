@@ -49,6 +49,7 @@ resource "aws_instance" "api" {
   instance_type               = var.instance_type
   subnet_id                   = data.aws_subnet.selected.id
   key_name                    = var.key_name
+  iam_instance_profile        = aws_iam_instance_profile.instance.name
   associate_public_ip_address = var.associate_public_ip_address
   vpc_security_group_ids      = var.create_security_group ? [aws_security_group.api[0].id] : var.existing_security_group_ids
 

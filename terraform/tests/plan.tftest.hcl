@@ -1,4 +1,12 @@
-mock_provider "aws" {}
+mock_provider "aws" {
+  # Random mock strings would fail ARN validation.
+  mock_data "aws_partition" {
+    defaults = { partition = "aws" }
+  }
+  mock_data "aws_caller_identity" {
+    defaults = { account_id = "123456789012" }
+  }
+}
 
 variables {
   aws_region                  = "eu-north-1"
@@ -11,6 +19,7 @@ variables {
   root_volume_size            = 20
   root_volume_type            = "gp3"
   root_delete_on_termination  = true
+  github_repository           = "octocat/example"
 }
 
 run "reuse_existing_security_groups" {
@@ -28,6 +37,11 @@ run "reuse_existing_security_groups" {
   assert {
     condition     = aws_instance.api.vpc_security_group_ids == toset(["sg-0123456789abcdef0", "sg-0123456789abcdef1"])
     error_message = "Every existing security group must be retained."
+  }
+
+  assert {
+    condition     = aws_instance.api.iam_instance_profile == "wind-api-instance"
+    error_message = "The instance needs the SSM profile for keyless deployment."
   }
 }
 

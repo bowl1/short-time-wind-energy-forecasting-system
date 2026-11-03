@@ -90,3 +90,19 @@ variable "ssh_allowed_cidrs" {
     error_message = "Provide IPv4 CIDRs for trusted SSH clients; unrestricted 0.0.0.0/0 is not supported."
   }
 }
+
+variable "github_repository" {
+  description = "GitHub owner/repo allowed to deploy via OIDC, e.g. octocat/example. Must be the current repo name, not a redirect."
+  type        = string
+
+  validation {
+    condition     = can(regex("^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$", var.github_repository))
+    error_message = "Use the owner/repo form."
+  }
+}
+
+variable "github_deploy_branch" {
+  description = "Only workflows running on this branch can assume the deploy role."
+  type        = string
+  default     = "master"
+}

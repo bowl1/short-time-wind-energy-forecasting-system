@@ -16,3 +16,8 @@ output "swagger_url" {
 output "security_group_ids" {
   value = aws_instance.api.vpc_security_group_ids
 }
+
+output "github_deploy_role_arn" {
+  description = "Set as the AWS_DEPLOY_ROLE_ARN repository variable for the deploy workflow."
+  value       = aws_iam_role.github_deploy.arn
+}
