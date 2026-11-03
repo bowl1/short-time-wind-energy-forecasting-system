@@ -4,3 +4,15 @@ venv/
 bin/
 lib/
 .env
+
+# Terraform configuration and .terraform.lock.hcl belong in Git; state does not.
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.tfvars
+*.tfvars.json
+crash.log
+crash.*.log
+# Local example with real IDs; kept out of Git like terraform.tfvars.
+terraform/terraform.tfvars.example

@@ -4,6 +4,11 @@ on:
   push:
     branches:
       - master
+    paths-ignore:
+      - 'terraform/**'
+      - '.github/workflows/terraform.yml'
+      - '**/*.md'
+      - '.gitignore'
 
 jobs:
   deploy:
