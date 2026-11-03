@@ -74,7 +74,6 @@ balancer or Elastic IP, which keeps the setup within a minimal budget.
 
 ```bash
 cd terraform
-cp terraform.tfvars.example terraform.tfvars   # fill in real values (git-ignored)
 terraform init
 terraform plan        # review; expect no replacement of the instance
 terraform state list  # shows aws_instance.api once adopted
