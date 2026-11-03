@@ -35,12 +35,55 @@ You can access the live API via:
 - **Backend**: FastAPI (Python)
 - **ML Models**: XGBoost, Linear Regression, Random Forest *(best performance and selected for deployment)*
 - **Deployment**: AWS EC2(Ubuntu)
+- **Infrastructure as code**: [Terraform](terraform/README.md) for the EC2 instance, with optional dedicated security group; existing networking is reused.
 - **Documentation**: Swagger (via FastAPI’s auto-generated docs)
 - **ML Ops Tools**: MLflow, Pandas, Scikit-learn
 - **CI/CD**:
   - Docker for containerization and environment consistency  
   - GitHub Actions for automatic deployment to AWS EC2 on each `git push`
 
+
+The `master` branch runs the lightweight EC2 + Docker deployment. Kubernetes,
+Prometheus, and Grafana experiments are isolated on `feat/local-k8s-monitoring`
+for local use. Terraform validation runs in CI without AWS credentials; cloud
+changes are applied manually after reviewing a plan.
+
+## 🏗️ Infrastructure as Code (Terraform)
+
+The production EC2 instance is managed by Terraform in [`terraform/`](terraform/README.md).
+The running instance was **imported** rather than recreated, so adoption caused
+no downtime (`1 imported, 0 added, 0 changed, 0 destroyed`), and `terraform plan`
+now reports `No changes`.
+
+```mermaid
+flowchart LR
+    TF[Terraform CLI] -->|manages| EC2[EC2 t3.micro + EBS]
+    GH[GitHub Actions] -->|SSH: docker build/run| EC2
+    User[API client] -->|HTTP :80| EC2
+```
+
+| Resource | Managed by Terraform? |
+|---|---|
+| EC2 instance (AMI, type, subnet, key pair, root volume, tags) | ✅ Yes, with `prevent_destroy` |
+| Existing security group | ❌ Referenced by ID only; rules unchanged |
+| VPC / subnet | ❌ Read-only lookup |
+
+Responsibilities are split: Terraform owns the **infrastructure**, while GitHub
+Actions owns the **application release**. There is no EKS, NAT gateway, load
+balancer or Elastic IP, which keeps the setup within a minimal budget.
+
+```bash
+cd terraform
+cp terraform.tfvars.example terraform.tfvars   # fill in real values (git-ignored)
+terraform init
+terraform plan        # review; expect no replacement of the instance
+terraform state list  # shows aws_instance.api once adopted
+```
+
+CI (`.github/workflows/terraform.yml`) runs `fmt`, `validate` and `terraform test`
+without AWS credentials. `terraform.tfvars` and `terraform.tfstate` stay local and
+are not committed. See [terraform/README.md](terraform/README.md) for the full
+import procedure.
 
 ## 🌍 Data Sources
 
