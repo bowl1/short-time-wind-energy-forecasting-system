@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wind-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wind-api
+  template:
+    metadata:
+      labels:
+        app: wind-api
+    spec:
+      containers:
+        - name: wind-api
+          image: wind-api:local
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8000
+          env:
+            - name: LOCAL_MODEL_PATH
+              value: /app/train-model/saved_model/RandomForest.pkl
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          startupProbe:
+            httpGet:
+              path: /Health
+              port: http
+            periodSeconds: 5
+            failureThreshold: 60
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: http
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /Health
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 3

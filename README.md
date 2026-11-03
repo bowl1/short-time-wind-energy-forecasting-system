@@ -32,6 +32,8 @@ You can access the live API via:
 
 ## ⚙️ Tech Stack
 
+Minimal Kubernetes deployment instructions: [k8s/README.md](k8s/README.md).
+
 - **Backend**: FastAPI (Python)
 - **ML Models**: XGBoost, Linear Regression, Random Forest *(best performance and selected for deployment)*
 - **Deployment**: AWS EC2(Ubuntu)

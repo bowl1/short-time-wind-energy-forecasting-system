@@ -7,6 +7,7 @@ import pandas as pd
 import math
 import joblib
 import os
+from pathlib import Path
 
 app = FastAPI(
     title="Wind Power Forecast API",
@@ -15,7 +16,13 @@ app = FastAPI(
 )
 
 # === Load Local Model ===
-local_model_path = os.getenv("Local model path", "../train-model/saved_model/RandomForest.pkl")
+local_model_path = os.getenv(
+    "LOCAL_MODEL_PATH",
+    os.getenv(
+        "Local model path",
+        str(Path(__file__).resolve().parents[2] / "train-model/saved_model/RandomForest.pkl"),
+    ),
+)
 
 try:
     model = joblib.load(local_model_path)
@@ -154,6 +161,13 @@ def sample_input():
 @app.get("/Health")
 def health_check():
     return {"Status": "Ok"}
+
+
+@app.get("/ready", include_in_schema=False)
+def readiness_check():
+    if model is None:
+        raise HTTPException(status_code=503, detail="Model not loaded")
+    return {"Status": "Ready"}
 
 
 # === Redirect root to Swagger UI ===
