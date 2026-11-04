@@ -1,0 +1,40 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: wind-forecast
+spec:
+  # Hourly: fetch the 24 hours starting at the next whole UTC hour and predict them in one batch.
+  # Open-Meteo forecasts update about hourly, so pulling more often adds no new data.
+  schedule: "5 * * * *"
+  timeZone: Etc/UTC
+  startingDeadlineSeconds: 600
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 300
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: fetch
+              # Reuse the API image: it already has Python and is in the cluster
+              image: wind-api:local
+              imagePullPolicy: IfNotPresent
+              command: [python, /scripts/fetch_forecast.py]
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+                limits:
+                  cpu: 200m
+                  memory: 256Mi
+              volumeMounts:
+                - name: script
+                  mountPath: /scripts
+          volumes:
+            - name: script
+              configMap:
+                name: forecast-script
