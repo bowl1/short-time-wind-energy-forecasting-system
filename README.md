@@ -132,7 +132,7 @@ This program supports two main functionalities: **model training** and **predict
    ```bash
     python -m venv .venv
     source .venv/bin/activate
-    pip install -r fastapi-app/requirements.txt
+    pip install -r train-model/requirements.txt  # API deps + training deps
    ```
 
 2. To train a model:
