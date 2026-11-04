@@ -8,7 +8,7 @@ import math
 import joblib
 import os
 from pathlib import Path
-from prometheus_client import Gauge, REGISTRY
+from prometheus_client import Gauge, REGISTRY, GC_COLLECTOR, PLATFORM_COLLECTOR, disable_created_metrics
 from prometheus_client.core import GaugeMetricFamily
 from threading import Lock
 from prometheus_fastapi_instrumentator import Instrumentator, metrics
@@ -20,8 +20,15 @@ app = FastAPI(
 )
 
 # === Prometheus Metrics ===
-# Only the request counter and per-endpoint latency the dashboard uses
-Instrumentator(excluded_handlers=["/metrics", "/Health", "/ready"]).add(
+# Drop series nothing reads: *_created timestamps, Python GC and interpreter info.
+# process_* (memory/CPU) stays for sizing the container's resource limits.
+disable_created_metrics()
+REGISTRY.unregister(GC_COLLECTOR)
+REGISTRY.unregister(PLATFORM_COLLECTOR)
+
+# Only the request counter and per-endpoint latency the dashboard uses.
+# Patterns are regex searches, so the root redirect needs anchoring.
+Instrumentator(excluded_handlers=["/metrics", "/Health", "/ready", "/docs", "/openapi.json", "/redoc", "^/$"]).add(
     metrics.requests(),
     metrics.latency(should_include_status=False, buckets=(0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5)),
 ).instrument(app).expose(app, include_in_schema=False)
