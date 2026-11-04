@@ -4,9 +4,11 @@ data "aws_subnet" "selected" {
 }
 
 resource "aws_security_group" "api" {
-  count       = var.create_security_group ? 1 : 0
-  name_prefix = "wind-api-"
-  description = "HTTP API and restricted deployment SSH"
+  count = var.create_security_group ? 1 : 0
+  # name/description force replacement, so an adopted group keeps its original values.
+  name        = var.security_group_name
+  name_prefix = var.security_group_name == null ? "wind-api-" : null
+  description = var.security_group_description
   vpc_id      = data.aws_subnet.selected.vpc_id
 
   tags = { Name = "wind-api" }
@@ -29,7 +31,7 @@ resource "aws_vpc_security_group_ingress_rule" "http" {
 resource "aws_vpc_security_group_ingress_rule" "ssh" {
   for_each          = var.create_security_group ? var.ssh_allowed_cidrs : toset([])
   security_group_id = aws_security_group.api[0].id
-  description       = "SSH from a trusted administrator or deployment runner"
+  description       = "Optional SSH from a trusted administrator"
   ip_protocol       = "tcp"
   from_port         = 22
   to_port           = 22
@@ -66,8 +68,8 @@ resource "aws_instance" "api" {
     prevent_destroy = true
 
     precondition {
-      condition     = var.create_security_group ? length(var.existing_security_group_ids) == 0 && length(var.ssh_allowed_cidrs) > 0 : length(var.existing_security_group_ids) > 0
-      error_message = "Reuse existing security groups, OR create a new group with explicit SSH CIDRs; do not mix modes."
+      condition     = var.create_security_group ? length(var.existing_security_group_ids) == 0 : length(var.existing_security_group_ids) > 0
+      error_message = "Reuse existing security groups, OR let Terraform manage one; do not mix modes."
     }
   }
 }

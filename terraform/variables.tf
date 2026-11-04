@@ -73,13 +73,13 @@ variable "existing_security_group_ids" {
 }
 
 variable "create_security_group" {
-  description = "Opt in to a dedicated managed security group instead of reusing existing ones."
+  description = "Manage the instance's security group in Terraform: create a new one, or adopt one via security_group_import."
   type        = bool
   default     = false
 }
 
 variable "ssh_allowed_cidrs" {
-  description = "Trusted IPv4 CIDRs for SSH when creating a group. Must also allow the deployment runner's egress IP."
+  description = "Optional trusted IPv4 CIDRs for SSH in a managed group. Deploys use SSM, so empty is recommended."
   type        = set(string)
   default     = []
 
@@ -105,4 +105,28 @@ variable "github_deploy_branch" {
   description = "Only workflows running on this branch can assume the deploy role."
   type        = string
   default     = "master"
+}
+
+variable "security_group_name" {
+  description = "Exact name of the managed group. Required when adopting (renaming forces replacement); null uses the wind-api- prefix."
+  type        = string
+  nullable    = true
+  default     = null
+}
+
+variable "security_group_description" {
+  description = "Description of the managed group. Must match the existing group when adopting (changes force replacement)."
+  type        = string
+  default     = "HTTP API for wind power forecasts; deploys use SSM"
+}
+
+variable "security_group_import" {
+  description = "IDs of an existing group and its HTTP/egress rules to adopt into the managed group; null when creating a new one."
+  type = object({
+    group_id       = string
+    http_rule_id   = string
+    egress_rule_id = string
+  })
+  nullable = true
+  default  = null
 }

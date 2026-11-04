@@ -35,7 +35,7 @@ You can access the live API via:
 - **Backend**: FastAPI (Python)
 - **ML Models**: XGBoost, Linear Regression, Random Forest *(best performance and selected for deployment)*
 - **Deployment**: AWS EC2(Ubuntu)
-- **Infrastructure as code**: [Terraform](terraform/README.md) for the EC2 instance, with optional dedicated security group; existing networking is reused.
+- **Infrastructure as code**: [Terraform](terraform/README.md) for the EC2 instance, its security group and keyless deploy roles; existing networking is reused.
 - **Documentation**: Swagger (via FastAPI’s auto-generated docs)
 - **ML Ops Tools**: MLflow, Pandas, Scikit-learn
 - **CI/CD**:
@@ -58,14 +58,15 @@ now reports `No changes`.
 ```mermaid
 flowchart LR
     TF[Terraform CLI] -->|manages| EC2[EC2 t3.micro + EBS]
-    GH[GitHub Actions] -->|SSH: docker build/run| EC2
+    GH[GitHub Actions] -->|OIDC + SSM: docker build/run| EC2
     User[API client] -->|HTTP :80| EC2
 ```
 
 | Resource | Managed by Terraform? |
 |---|---|
 | EC2 instance (AMI, type, subnet, key pair, root volume, tags) | ✅ Yes, with `prevent_destroy` |
-| Existing security group | ❌ Referenced by ID only; rules unchanged |
+| Security group (HTTP 80 only, no SSH) | ✅ Yes, adopted via import |
+| IAM: SSM instance role, GitHub OIDC deploy role | ✅ Yes |
 | VPC / subnet | ❌ Read-only lookup |
 
 Responsibilities are split: Terraform owns the **infrastructure**, while GitHub

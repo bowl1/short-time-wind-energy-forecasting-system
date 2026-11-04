@@ -64,6 +64,24 @@ run "create_restricted_security_group" {
   }
 }
 
+run "managed_security_group_without_ssh" {
+  command = plan
+
+  variables {
+    create_security_group = true
+  }
+
+  assert {
+    condition     = length(aws_vpc_security_group_ingress_rule.ssh) == 0 && length(aws_vpc_security_group_ingress_rule.http) == 1
+    error_message = "SSM deploys need no SSH rule; only HTTP should be open."
+  }
+
+  assert {
+    condition     = aws_security_group.api[0].name_prefix == "wind-api-"
+    error_message = "A new group without an explicit name should use the wind-api- prefix."
+  }
+}
+
 run "reject_missing_security_groups" {
   command         = plan
   expect_failures = [aws_instance.api]
