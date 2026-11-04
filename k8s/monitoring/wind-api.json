@@ -1,0 +1,189 @@
+{
+  "uid": "wind-api",
+  "title": "Wind API",
+  "schemaVersion": 39,
+  "timezone": "utc",
+  "time": { "from": "now-6h", "to": "now" },
+  "refresh": "30s",
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Next hour forecast",
+      "description": "Slot +1h of the latest successful 24h batch.",
+      "gridPos": { "x": 0, "y": 0, "w": 6, "h": 5 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "refId": "A", "expr": "wind_predicted_power_kw{horizon=\"1\"}", "instant": true }],
+      "fieldConfig": { "defaults": { "unit": "kwatt", "decimals": 2, "noValue": "No forecast yet" }, "overrides": [] }
+    },
+    {
+      "type": "stat",
+      "title": "Next hour (UTC)",
+      "description": "Target time of slot +1h in the latest batch.",
+      "gridPos": { "x": 6, "y": 0, "w": 6, "h": 5 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "refId": "A", "expr": "wind_forecast_target_timestamp_seconds{horizon=\"1\"} * 1000", "instant": true }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "dateTimeAsIso", "noValue": "No forecast yet", "color": { "mode": "fixed", "fixedColor": "text" } },
+        "overrides": []
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Forecast age",
+      "description": "Time since the last successful batch. Over 65 min means an hourly update failed; all forecast panels keep showing the previous batch.",
+      "gridPos": { "x": 12, "y": 0, "w": 6, "h": 5 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "refId": "A", "expr": "time() - wind_forecast_generated_timestamp_seconds", "instant": true }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "decimals": 0,
+          "noValue": "No forecast yet",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 3900 },
+              { "color": "red", "value": 7500 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": { "colorMode": "background" }
+    },
+    {
+      "type": "stat",
+      "title": "Model loaded",
+      "gridPos": { "x": 18, "y": 0, "w": 6, "h": 5 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "refId": "A", "expr": "min(wind_model_loaded)", "instant": true }],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "type": "value", "options": { "0": { "text": "NO", "color": "red" }, "1": { "text": "YES", "color": "green" } } }
+          ]
+        },
+        "overrides": []
+      },
+      "options": { "colorMode": "background" }
+    },
+    {
+      "type": "barchart",
+      "title": "Latest 24h forecast (UTC)",
+      "description": "All 24 hourly predictions from the latest successful batch, plotted against their target time.",
+      "gridPos": { "x": 0, "y": 5, "w": 24, "h": 9 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "refId": "A", "expr": "wind_predicted_power_kw", "instant": true, "format": "table" },
+        { "refId": "B", "expr": "wind_forecast_target_timestamp_seconds * 1000", "instant": true, "format": "table" }
+      ],
+      "transformations": [
+        { "id": "joinByField", "options": { "byField": "horizon", "mode": "outer" } },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": { "Time": true, "Time 1": true, "Time 2": true, "horizon": true },
+            "renameByName": { "Value #A": "Forecast", "Value #B": "Target time" }
+          }
+        },
+        { "id": "convertFieldType", "options": { "conversions": [{ "targetField": "Forecast", "destinationType": "number" }, { "targetField": "Target time", "destinationType": "time" }] } },
+        { "id": "sortBy", "options": { "sort": [{ "field": "Target time" }] } }
+      ],
+      "options": { "xField": "Target time", "showValue": "never", "barWidth": 0.8, "xTickLabelSpacing": 50, "legend": { "showLegend": false } },
+      "fieldConfig": {
+        "defaults": { "unit": "kwatt", "decimals": 2, "custom": { "fillOpacity": 80 } },
+        "overrides": [{ "matcher": { "id": "byName", "options": "Target time" }, "properties": [{ "id": "unit", "value": "time:HH:mm" }] }]
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Next-hour forecast history",
+      "description": "Slot +1h from each batch; steps once per hourly update.",
+      "gridPos": { "x": 0, "y": 14, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "refId": "A", "expr": "wind_predicted_power_kw{horizon=\"1\"}", "legendFormat": "next hour forecast" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "kwatt", "custom": { "lineInterpolation": "stepAfter" } }, "overrides": [] }
+    },
+    {
+      "type": "timeseries",
+      "title": "Forecast age",
+      "description": "Sawtooth that resets every successful update; climbing past 60 min means updates are failing.",
+      "gridPos": { "x": 12, "y": 14, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "refId": "A", "expr": "time() - wind_forecast_generated_timestamp_seconds", "legendFormat": "age" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 3900 },
+              { "color": "red", "value": 7500 }
+            ]
+          },
+          "custom": { "thresholdsStyle": { "mode": "line" } }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Pods up",
+      "gridPos": { "x": 0, "y": 22, "w": 12, "h": 5 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "refId": "A", "expr": "sum(up{job=\"wind-api\"})", "instant": true }]
+    },
+    {
+      "type": "stat",
+      "title": "5xx error rate (5m)",
+      "gridPos": { "x": 12, "y": 22, "w": 12, "h": 5 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "(sum(rate(http_requests_total{job=\"wind-api\",status=\"5xx\"}[5m])) or vector(0)) / clamp_min(sum(rate(http_requests_total{job=\"wind-api\"}[5m])), 1e-9)",
+          "instant": true
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "percentunit" }, "overrides": [] }
+    },
+    {
+      "type": "timeseries",
+      "title": "Requests per second by endpoint",
+      "gridPos": { "x": 0, "y": 27, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (handler, status) (rate(http_requests_total{job=\"wind-api\"}[5m]))",
+          "legendFormat": "{{handler}} {{status}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "reqps" }, "overrides": [] }
+    },
+    {
+      "type": "timeseries",
+      "title": "p95 latency by endpoint",
+      "gridPos": { "x": 12, "y": 27, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.95, sum by (le, handler) (rate(http_request_duration_seconds_bucket{job=\"wind-api\"}[5m])))",
+          "legendFormat": "{{handler}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }, "overrides": [] }
+    }
+  ]
+}
