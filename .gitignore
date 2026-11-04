@@ -19,3 +19,6 @@ terraform/terraform.tfvars.example
 
 # Local Claude Code settings (machine-specific permissions)
 .claude/
+
+# Personal interview notes (local only)
+interview.md
