@@ -40,12 +40,13 @@ You can access the live API via:
 - **ML Ops Tools**: MLflow, Pandas, Scikit-learn
 - **CI/CD**:
   - Docker for containerization and environment consistency  
-  - GitHub Actions for automatic deployment to AWS EC2 on each `git push`
+  - GitHub Actions for automatic deployment to AWS EC2 on each `git push` (OIDC + SSM, no SSH keys)
+- **Orchestration & observability** *(local, see [branch](https://github.com/bowl1/short-time-wind-energy-forecasting-system/tree/feat/local-k8s-monitoring))*: Kubernetes (minikube), Kustomize, CronJob, Prometheus, Grafana
 
 
 The `master` branch runs the lightweight EC2 + Docker deployment. Kubernetes,
-Prometheus, and Grafana experiments are isolated on `feat/local-k8s-monitoring`
-for local use. Terraform validation runs in CI without AWS credentials; cloud
+Prometheus, and Grafana run locally on the
+[`feat/local-k8s-monitoring`](https://github.com/bowl1/short-time-wind-energy-forecasting-system/tree/feat/local-k8s-monitoring) branch (see below). Terraform validation runs in CI without AWS credentials; cloud
 changes are applied manually after reviewing a plan.
 
 ## 🏗️ Infrastructure as Code (Terraform)
@@ -84,6 +85,68 @@ CI (`.github/workflows/terraform.yml`) runs `fmt`, `validate` and `terraform tes
 without AWS credentials. `terraform.tfvars` and `terraform.tfstate` stay local and
 are not committed. See [terraform/README.md](terraform/README.md) for the full
 import procedure.
+
+## ☸️ Kubernetes, Prometheus & Grafana (local)
+
+> Code lives on the [`feat/local-k8s-monitoring`](https://github.com/bowl1/short-time-wind-energy-forecasting-system/tree/feat/local-k8s-monitoring) branch
+> (`k8s/` directory). It runs on a local single-node **minikube** cluster to keep
+> cloud costs at zero; a 1 GB t3.micro is too small for a Kubernetes control plane.
+
+The same Docker image runs in Kubernetes alongside an hourly forecasting job and
+a monitoring stack, all deployed declaratively with `kubectl apply -k`:
+
+```mermaid
+flowchart LR
+    OM[Open-Meteo API] -->|24h weather forecast| CJ[CronJob: wind-forecast<br/>hourly, UTC]
+    CJ -->|POST /predict/24h| API[Deployment: wind-api]
+    API -->|/metrics| P[Prometheus<br/>Kubernetes pod discovery]
+    P --> G[Grafana dashboard]
+```
+
+| Component | What it demonstrates |
+|---|---|
+| **wind-api Deployment + Service** | Startup / readiness / liveness probes (`/ready` returns 200 only after the model loads), CPU and memory requests/limits, rolling updates and `rollout undo`, self-healing restarts |
+| **CronJob `wind-forecast`** | Every hour fetches 24 hourly forecasts for Orkney starting at the next whole UTC hour and predicts them in one batch; `concurrencyPolicy: Forbid`, deadlines and retries; a failed run keeps the previous batch |
+| **Prometheus** | Scrapes pods by label through `kubernetes_sd` with a namespace-scoped RBAC Role (least privilege) |
+| **Grafana** | Datasource and dashboard provisioned as code (ConfigMaps via Kustomize generators) |
+| **Kustomize** | One `kubectl apply -k` per layer: `k8s/`, `k8s/forecast/`, `k8s/monitoring/` |
+
+**Metrics exposed by the API** (`/metrics`):
+
+- Service health: request rate by endpoint/status, p95 latency, 5xx error rate, `wind_model_loaded`
+- Forecast: `wind_predicted_power_kw{horizon="1".."24"}`, target time per horizon,
+  and the generation timestamp
+
+**Grafana dashboard** shows the next-hour forecast, a 24-point forecast curve (UTC),
+**forecast age** (turns orange after 65 min and red after 125 min, so a stalled
+pipeline is visible at a glance), pods up, error rate and latency.
+
+Forecast panels: next-hour value, forecast age, model status and the 24-hour curve (UTC)
+
+<img src="draw/grafana.png" alt="Grafana dashboard: forecast panels" width="700">
+
+Service monitoring panels: pods up, 5xx error rate, request rate and p95 latency by endpoint
+
+<img src="draw/prometheus.png" alt="Grafana dashboard: service monitoring panels" width="700">
+
+All times are UTC end to end, matching the training data, so hour-of-day features
+never shift with time zones or daylight saving.
+
+```bash
+git switch feat/local-k8s-monitoring
+minikube start
+docker build -f fastapi-app/Dockerfile -t wind-api:local .
+minikube image load wind-api:local
+kubectl apply -k k8s && kubectl apply -k k8s/forecast && kubectl apply -k k8s/monitoring
+kubectl port-forward svc/grafana 3000:3000      # http://localhost:3000 (admin/admin, local only)
+kubectl port-forward svc/prometheus 9090:9090   # Status → Targets: wind-api UP
+```
+
+**Known trade-offs** (intentional for a local demo): the latest forecast batch is
+held in API memory, so it is lost when the pod restarts until the next hourly run;
+Prometheus uses `emptyDir` with 2-day retention; Grafana uses default credentials.
+Production would use persistent volumes, a secret for credentials, and a managed
+cluster (e.g. EKS) with an image registry.
 
 ## 🌍 Data Sources
 
