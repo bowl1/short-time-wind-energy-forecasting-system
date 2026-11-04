@@ -121,13 +121,19 @@ flowchart LR
 **forecast age** (turns orange after 65 min and red after 125 min, so a stalled
 pipeline is visible at a glance), pods up, error rate and latency.
 
-Forecast panels: next-hour value, forecast age, model status and the 24-hour curve (UTC)
+Grafana, forecast panels: next-hour value, forecast age, model status and the 24-hour curve (UTC)
 
-<img src="draw/grafana.png" alt="Grafana dashboard: forecast panels" width="700">
+<img src="draw/grafana1.png" alt="Grafana dashboard: forecast panels" width="700">
 
-Service monitoring panels: pods up, 5xx error rate, request rate and p95 latency by endpoint
+Grafana, service monitoring panels: pods up, 5xx error rate, request rate and p95 latency by endpoint
 
-<img src="draw/prometheus.png" alt="Grafana dashboard: service monitoring panels" width="700">
+<img src="draw/grafana2.png" alt="Grafana dashboard: service monitoring panels" width="700">
+
+Prometheus: `wind_predicted_power_kw` returns one series per forecast hour
+(`horizon="1".."24"`); the `pod` and `instance` labels come from Kubernetes service
+discovery, and each hourly CronJob run shows up as a step change
+
+<img src="draw/prometheus.png" alt="Prometheus graph of wind_predicted_power_kw by horizon" width="700">
 
 All times are UTC end to end, matching the training data, so hour-of-day features
 never shift with time zones or daylight saving.
